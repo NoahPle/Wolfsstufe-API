@@ -1,10 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
+import { FirestoreService } from '../../core/firestore/firestore.service';
 
 @Injectable()
 export class AuthService {
-    public authenticate(authCredentialsDto: AuthCredentialsDto) {}
-
-    public createUser(dto: CreateUserDto) {}
+    public async authenticate(authCredentialsDto: AuthCredentialsDto) {
+        let res;
+        try {
+            res = await FirestoreService.authenticateWithEmailAndPassword(
+                authCredentialsDto.email,
+                authCredentialsDto.password,
+            );
+        } catch (e) {
+            res = 'wrong Email or Password';
+        }
+        return res;
+    }
 }
