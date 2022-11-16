@@ -1,4 +1,4 @@
-import { UserRole } from '../user.model';
+import { UserRole } from '../user';
 import { IsEnum, IsString } from 'class-validator';
 
 export class UpdateRoleDto {

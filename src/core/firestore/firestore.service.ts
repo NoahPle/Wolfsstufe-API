@@ -1,6 +1,8 @@
 import * as admin from 'firebase-admin';
 import * as firebase from 'firebase/app';
 import * as firebaseAuth from 'firebase/auth';
+import { HttpException, HttpStatus } from '@nestjs/common';
+import { DecodedIdToken } from 'firebase-admin/lib/auth';
 
 admin.initializeApp({
     credential: admin.credential.cert('wolfsstufe-dev-firebase-adminsdk.json'),
@@ -37,8 +39,17 @@ export class FirestoreService {
             const claims = (await this.getAuth().getUser(firebaseUserCredential.user.uid)).customClaims;
             return this.getAuth().createCustomToken(firebaseUserCredential.user.uid, claims);
         } catch (e) {
-            console.log(e);
-            return null;
+            throw new HttpException('Wrong email or password', HttpStatus.FORBIDDEN);
+        }
+    }
+
+    static async verifyCustomToken(token: string): Promise<DecodedIdToken> {
+        try {
+            const userCredential = await firebaseAuth.signInWithCustomToken(firebaseAuth.getAuth(), token);
+            const idToken = await userCredential.user.getIdToken();
+            return await this.getAuth().verifyIdToken(idToken);
+        } catch (e) {
+            throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
         }
     }
 
@@ -53,9 +64,19 @@ export class FirestoreService {
             await firebaseAuth.sendPasswordResetEmail(firebaseAuth.getAuth(), email);
             return firebaseUserCredential.user.uid;
         } catch (e) {
-            console.error(e);
-            return null;
+            throw new HttpException('Email already Exists', HttpStatus.BAD_REQUEST);
         }
+    }
+
+    static async deleteUser(id: string) {
+        // try {
+        //     const user = await this.getAuth()(id);
+        //     firebase
+        //     firebaseAuth.
+        //     await firebaseAuth.deleteUser();
+        // } catch (e) {
+        //
+        // }
     }
 
     static async setCustomClaims(uid: string, claims = {}) {
