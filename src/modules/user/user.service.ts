@@ -1,17 +1,27 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './user';
 import { FirestoreService } from '../../core/firestore/firestore.service';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { ModelService } from '../../core/firestore/model-service';
 
 @Injectable()
-export class UserService {
+export class UserService extends ModelService {
+    model = new User();
+
     public async createUser(createUserDto: CreateUserDto) {
         const uid = await FirestoreService.createUser(createUserDto.email);
 
         if (uid) {
-            const user = new User(uid, createUserDto);
-            await user.set(user.getJson());
+            this.model.getCollection();
+            const user = new User();
+
+            user.setFields({
+                id: uid,
+                ...createUserDto,
+            });
+
+            await this.set(uid, user.getJson());
             await FirestoreService.setCustomClaims(uid, user.getJson());
         }
     }
@@ -19,24 +29,11 @@ export class UserService {
     public async updateRole(updateRoleDto: UpdateRoleDto) {
         const user = await User.queryById(updateRoleDto.uid);
 
-        if (updateRoleDto.role !== user.getRole()) {
-            await user.set({ role: updateRoleDto.role });
-            await FirestoreService.setCustomClaims(user.getId(), user.getJson());
+        if (user && updateRoleDto.role !== user.role) {
+            user.role = updateRoleDto.role;
+
+            await this.set(updateRoleDto.uid, { role: user.role });
+            await FirestoreService.setCustomClaims(updateRoleDto.uid, user.getJson());
         }
-    }
-
-    public async deleteUser(id: string) {
-        if (id) {
-            console.log(id);
-
-            const user = await User.queryById(id);
-            await user.delete();
-        } else {
-            throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    private getCollection() {
-        return FirestoreService.getInstance().collection('users');
     }
 }

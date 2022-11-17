@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Put, UseGuards } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserService } from './user.service';
 import { UpdateRoleDto } from './dto/update-role.dto';
@@ -18,11 +18,5 @@ export class UserController {
     @UseGuards(AdminGuard)
     private async updateRole(@Body() updateRoleDto: UpdateRoleDto): Promise<void> {
         await this.userService.updateRole(updateRoleDto);
-    }
-
-    @Delete(':id')
-    @UseGuards(AdminGuard)
-    private async deleteUser(@Param('id') id: string) {
-        await this.userService.deleteUser(id);
     }
 }

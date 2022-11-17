@@ -68,17 +68,6 @@ export class FirestoreService {
         }
     }
 
-    static async deleteUser(id: string) {
-        // try {
-        //     const user = await this.getAuth()(id);
-        //     firebase
-        //     firebaseAuth.
-        //     await firebaseAuth.deleteUser();
-        // } catch (e) {
-        //
-        // }
-    }
-
     static async setCustomClaims(uid: string, claims = {}) {
         await this.getAuth().setCustomUserClaims(uid, claims);
     }

@@ -17,7 +17,7 @@ export class CreateUserDto {
 
     @IsOptional()
     @IsEnum(UserRole, {
-        message: 'role must be either user or admin',
+        message: 'role must be either user, admin or disabled',
     })
     readonly role: UserRole;
 }
