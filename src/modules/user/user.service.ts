@@ -1,19 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { User } from './user';
+import { User } from './user.model';
 import { FirestoreService } from '../../core/firestore/firestore.service';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { ModelService } from '../../core/firestore/model-service';
 
 @Injectable()
 export class UserService extends ModelService {
-    model = new User();
-
     public async createUser(createUserDto: CreateUserDto) {
         const uid = await FirestoreService.createUser(createUserDto.email);
 
         if (uid) {
-            this.model.getCollection();
             const user = new User();
 
             user.setFields({
@@ -21,19 +18,17 @@ export class UserService extends ModelService {
                 ...createUserDto,
             });
 
-            await this.set(uid, user.getJson());
+            await this.set(user);
             await FirestoreService.setCustomClaims(uid, user.getJson());
         }
     }
 
     public async updateRole(updateRoleDto: UpdateRoleDto) {
-        const user = await User.queryById(updateRoleDto.uid);
+        const user = await User.queryById(updateRoleDto.id);
 
         if (user && updateRoleDto.role !== user.role) {
-            user.role = updateRoleDto.role;
-
-            await this.set(updateRoleDto.uid, { role: user.role });
-            await FirestoreService.setCustomClaims(updateRoleDto.uid, user.getJson());
+            await this.setWithDto(updateRoleDto, User);
+            await FirestoreService.setCustomClaims(updateRoleDto.id, user.getJson());
         }
     }
 }

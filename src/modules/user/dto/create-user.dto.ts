@@ -1,5 +1,5 @@
 import { IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
-import { UserRole } from '../user';
+import { UserRole } from '../user.model';
 
 export class CreateUserDto {
     @IsString()
@@ -15,9 +15,6 @@ export class CreateUserDto {
     @IsString()
     readonly lastname: string;
 
-    @IsOptional()
-    @IsEnum(UserRole, {
-        message: 'role must be either user, admin or disabled',
-    })
+    @IsEnum(UserRole)
     readonly role: UserRole;
 }

@@ -7,15 +7,15 @@ export enum UserRole {
 }
 
 export class User extends FirestoreModel {
-    collectionPath = 'users';
+    collection = 'users';
 
     constructor() {
         super();
-        FirestoreModel.addField(this, 'id', null);
-        FirestoreModel.addField(this, 'email', null);
-        FirestoreModel.addField(this, 'pfadiname', null);
-        FirestoreModel.addField(this, 'firstname', null);
-        FirestoreModel.addField(this, 'lastname', null);
+        FirestoreModel.addField(this, 'id');
+        FirestoreModel.addField(this, 'email');
+        FirestoreModel.addField(this, 'pfadiname');
+        FirestoreModel.addField(this, 'firstname');
+        FirestoreModel.addField(this, 'lastname');
         FirestoreModel.addField(this, 'role', 'user');
     }
 }
