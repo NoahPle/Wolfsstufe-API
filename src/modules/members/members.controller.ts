@@ -3,7 +3,7 @@ import { UserGuard } from '../../guards/user-guard';
 import { CreateMemberDto } from './dto/create-member-dto';
 import { MembersService } from './members.service';
 import { UpdateMemberDto } from './dto/update-member-dto';
-import { AdminGuard } from '../../guards/admin.guard';
+import { StuleiGuard } from '../../guards/stulei.guard';
 
 @Controller('members')
 @UseGuards(UserGuard)
@@ -21,7 +21,7 @@ export class MembersController {
     }
 
     @Delete(':id')
-    @UseGuards(AdminGuard)
+    @UseGuards(StuleiGuard)
     async deleteMember(@Param('id') id: string) {
         await this.membersService.deleteMember(id);
     }

@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { IncomingMessage } from 'http';
 import { FirestoreService } from '../core/firestore/firestore.service';
-import { UserRole } from '../modules/user/user.model';
+import { UserRole } from '../modules/users/user.model';
 
 @Injectable()
 export class AdminGuard implements CanActivate {

@@ -15,6 +15,9 @@ export class CreateUserDto {
     @IsString()
     readonly lastname: string;
 
+    @IsString()
+    readonly phone: string;
+
     @IsEnum(UserRole)
     readonly role: UserRole;
 }

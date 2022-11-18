@@ -99,8 +99,7 @@ export class MembersService extends ModelService {
         const modelsWithId = newModels.filter((model) => !!model.id);
         const modelsWithoutId = newModels.filter((model) => !model.id);
 
-        await this.bulkSet(oldModels);
-        await this.bulkSet(modelsWithId);
+        await this.bulkSet([...oldModels, ...modelsWithId]);
         await this.bulkAdd(modelsWithoutId);
 
         return {
