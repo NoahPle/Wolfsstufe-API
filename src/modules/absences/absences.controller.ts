@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, UseGuards } from '@nestjs/common';
 import { AbsencesService } from './absences.service';
 import { CreateAbsenceDto } from './dto/create-absence.dto';
 import { UserGuard } from '../../guards/user-guard';
@@ -22,6 +22,11 @@ export class AbsencesController {
 
     @Put('entries')
     async updateEntries(@Body() bulkUpdateAbsenceEntryDto: BulkUpdateAbsenceEntryDto): Promise<void> {
-        return await this.updateEntries(bulkUpdateAbsenceEntryDto);
+        return await this.absencesService.updateEntries(bulkUpdateAbsenceEntryDto);
+    }
+
+    @Get('emails')
+    async getEmails() {
+        await this.absencesService.getEmails();
     }
 }

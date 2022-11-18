@@ -5,6 +5,7 @@ import { CreateAbsenceDto } from './dto/create-absence.dto';
 import { AbsenceEntry } from './models/entry.model';
 import { BulkCreateAbsenceEntryDto } from './dto/bulk-create-absence-entry.dto';
 import { BulkUpdateAbsenceEntryDto } from './dto/bulk-update-absence-entry.dto';
+import { EmailService } from '../../core/services/email.service';
 
 @Injectable()
 export class AbsencesService extends ModelService {
@@ -24,5 +25,9 @@ export class AbsencesService extends ModelService {
 
     async updateEntries(dto: BulkUpdateAbsenceEntryDto) {
         await this.bulkSetWithDto(dto.absenceEntries, AbsenceEntry, dto.absenceListId);
+    }
+
+    async getEmails() {
+        await EmailService.fetchEmails();
     }
 }
