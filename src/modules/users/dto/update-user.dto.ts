@@ -1,4 +1,5 @@
-import { IsString } from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { UserRole } from '../user.model';
 
 export class UpdateUserDto {
     @IsString()
@@ -14,5 +15,9 @@ export class UpdateUserDto {
     readonly lastname: string;
 
     @IsString()
+    @IsOptional()
     readonly phone: string;
+
+    @IsEnum(UserRole)
+    readonly role: UserRole;
 }

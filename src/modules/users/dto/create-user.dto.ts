@@ -7,6 +7,7 @@ export class CreateUserDto {
     readonly email: string;
 
     @IsString()
+    @IsOptional()
     readonly pfadiname: string;
 
     @IsString()
@@ -16,6 +17,7 @@ export class CreateUserDto {
     readonly lastname: string;
 
     @IsString()
+    @IsOptional()
     readonly phone: string;
 
     @IsEnum(UserRole)

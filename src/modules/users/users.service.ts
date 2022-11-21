@@ -2,7 +2,6 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User, UserRole } from './user.model';
 import { FirestoreService } from '../../core/firestore/firestore.service';
-import { UpdateRoleDto } from './dto/update-role.dto';
 import { ModelService } from '../../core/firestore/model-service';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -20,36 +19,33 @@ export class UsersService extends ModelService {
         }
     }
 
-    public async updateUser(updateUserDto: UpdateUserDto) {
-        await this.setWithDto(updateUserDto, User);
-        const user = await User.queryById(updateUserDto.id);
-        await FirestoreService.setCustomClaims(updateUserDto.id, user.getJson());
-    }
+    public async updateUser(updateUserDto: UpdateUserDto, token: string) {
+        const decodedIdToken = await FirestoreService.verifyCustomToken(token);
 
-    public async updateRole(updateRoleDto: UpdateRoleDto) {
-        if (updateRoleDto.role !== UserRole.admin) {
-            const user = await User.queryById(updateRoleDto.id);
-
-            if (user && updateRoleDto.role !== user.role && user.role !== UserRole.admin) {
-                await this.setWithDto(updateRoleDto, User);
-                await FirestoreService.setCustomClaims(updateRoleDto.id, user.getJson());
-            } else {
-                throw new HttpException('Cannot downgrade an admin', HttpStatus.FORBIDDEN);
-            }
-        } else {
+        if (updateUserDto.role === UserRole.admin && decodedIdToken.role !== UserRole.admin) {
             throw new HttpException('Only Admins can upgrade to admin', HttpStatus.FORBIDDEN);
         }
+
+        const user = await User.queryById(updateUserDto.id);
+
+        if (!user) {
+            throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+        }
+
+        if (
+            user.role === UserRole.admin &&
+            updateUserDto.role !== UserRole.admin &&
+            decodedIdToken.role !== UserRole.admin
+        ) {
+            throw new HttpException('Cannot downgrade an admin', HttpStatus.FORBIDDEN);
+        }
+
+        await this.setWithDto(updateUserDto, User);
+        const updatedUser = await User.queryById(updateUserDto.id);
+        await FirestoreService.setCustomClaims(updateUserDto.id, updatedUser.getJson());
     }
 
-    public async makeAdmin(id: string) {
-        const user = await User.queryById(id);
-
-        if (user && user.role !== UserRole.admin) {
-            const updateDto: UpdateRoleDto = { id, role: UserRole.admin };
-            await this.setWithDto(updateDto, User);
-            await FirestoreService.setCustomClaims(id, user.getJson());
-        } else {
-            throw new HttpException('User is already admin', HttpStatus.FORBIDDEN);
-        }
+    public async disableUser(id: string) {
+        await this.setWithDto({ id, role: UserRole.disabled }, User);
     }
 }

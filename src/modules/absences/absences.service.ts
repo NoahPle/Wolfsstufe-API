@@ -57,21 +57,24 @@ export class AbsencesService extends ModelService {
 
         const filteredResults: Member[] = [...new Set(results)];
 
-        const nextSaturday =
-            moment().isoWeekday() <= 6 ? moment().isoWeekday(6) : moment().add(1, 'weeks').isoWeekday(6);
+        if (filteredResults.length) {
+            const nextSaturday =
+                moment().isoWeekday() <= 6 ? moment().isoWeekday(6) : moment().add(1, 'weeks').isoWeekday(6);
 
-        const listId =
-            (await AbsenceList.findByDate(nextSaturday)).id ||
-            (await this.createAbsenceList({ date: nextSaturday.toDate() }));
+            const listId =
+                (await AbsenceList.findByDate(nextSaturday)).id ||
+                (await this.createAbsenceList({ date: nextSaturday.toDate() }));
 
-        const dto: BulkUpdateAbsenceEntryDto = {
-            absenceListId: listId,
-            absenceEntries: filteredResults.map((member) => {
-                return { id: member.id, state: AttendanceState.excused };
-            }),
-        };
+            const dto: BulkUpdateAbsenceEntryDto = {
+                absenceListId: listId,
+                absenceEntries: filteredResults.map((member) => {
+                    return { id: member.id, state: AttendanceState.excused };
+                }),
+            };
 
-        await this.updateEntries(dto);
+            await this.updateEntries(dto);
+        }
+
         return filteredResults;
     }
 }

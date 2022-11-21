@@ -1,10 +1,9 @@
-import { Body, Controller, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Headers, Controller, Post, Put, UseGuards, Delete, Param } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UsersService } from './users.service';
-import { UpdateRoleDto } from './dto/update-role.dto';
 import { StuleiGuard } from '../../guards/stulei.guard';
-import { AdminGuard } from '../../guards/admin.guard';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AdminGuard } from '../../guards/admin.guard';
 
 @Controller('users')
 @UseGuards(StuleiGuard)
@@ -17,18 +16,13 @@ export class UsersController {
     }
 
     @Put()
-    private async updateUser(@Body() updateUserDto: UpdateUserDto) {
-        await this.userService.updateUser(updateUserDto);
+    private async updateUser(@Body() updateUserDto: UpdateUserDto, @Headers('Authorization') token: string) {
+        await this.userService.updateUser(updateUserDto, token.split('Bearer ')[1]);
     }
 
-    @Put('role')
-    private async updateRole(@Body() updateRoleDto: UpdateRoleDto): Promise<void> {
-        await this.userService.updateRole(updateRoleDto);
-    }
-
-    @Put('admin/:id')
+    @Delete(':id')
     @UseGuards(AdminGuard)
-    private async makeAdmin(@Param('id') id: string): Promise<void> {
-        await this.userService.makeAdmin(id);
+    private async disableUser(@Param('id') id: string) {
+        await this.userService.disableUser(id);
     }
 }

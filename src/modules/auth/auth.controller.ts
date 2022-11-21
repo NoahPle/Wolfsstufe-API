@@ -9,8 +9,9 @@ export class AuthController {
     constructor(private authService: AuthService) {}
 
     @Post('authenticate')
-    async authenticate(@Body() authCredentialsDto: AuthCredentialsDto): Promise<string> {
+    async authenticate(@Body() authCredentialsDto: AuthCredentialsDto): Promise<any> {
         this.logger.verbose(`User "${authCredentialsDto.email}" tried to sign in.`);
-        return this.authService.authenticate(authCredentialsDto);
+        const token = await this.authService.authenticate(authCredentialsDto);
+        return { token };
     }
 }
