@@ -3,7 +3,7 @@ import { FirestoreService } from './firestore.service';
 
 export abstract class ModelService {
     protected async add(model: FirestoreModel) {
-        await this.bulkAdd([model]);
+        return (await this.bulkAdd([model]))[0];
     }
 
     protected async set(model: FirestoreModel) {
@@ -16,6 +16,7 @@ export abstract class ModelService {
 
     protected async bulkAdd(models: FirestoreModel[]) {
         const batch = FirestoreService.getInstance().batch();
+        const ids = [];
 
         for (const model of models) {
             const ref = model.getCollection().doc();
@@ -24,9 +25,11 @@ export abstract class ModelService {
                 ...model.getJson(),
                 id: ref.id,
             });
+            ids.push(ref.id);
         }
 
         await batch.commit();
+        return ids;
     }
 
     protected async bulkSet(models: FirestoreModel[]) {
@@ -72,11 +75,11 @@ export abstract class ModelService {
     }
 
     protected async addWithDto(dto = {}, modelRef: typeof FirestoreModel, parentId?: string) {
-        await this.bulkAddWithDto([dto], modelRef, parentId);
+        return (await this.bulkAddWithDto([dto], modelRef, parentId))[0];
     }
 
     protected async bulkAddWithDto(dtos = [], modelRef: typeof FirestoreModel, parentId?: string) {
-        await this.bulkAdd(this.generateModels(dtos, modelRef, parentId));
+        return await this.bulkAdd(this.generateModels(dtos, modelRef, parentId));
     }
 
     private generateModels(dtos = [], modelRef: typeof FirestoreModel, parentId?: string): FirestoreModel[] {

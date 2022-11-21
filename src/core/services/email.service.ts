@@ -22,8 +22,7 @@ export class EmailService {
             connection.once('ready', () => {
                 connection.openBox('Abmeldungen', true, (err, box) => {
                     if (err) reject(err);
-                    const dateString = moment().subtract(30, 'days').format('MMM DD, YYYY');
-                    console.log(dateString);
+                    const dateString = moment().subtract(14, 'days').format('MMM DD, YYYY');
 
                     connection.search(
                         [
@@ -31,11 +30,9 @@ export class EmailService {
                             ['SINCE', dateString],
                         ],
                         (err, results) => {
-                            console.log(results);
-
                             if (results.length) {
                                 const fetch = connection.fetch(results, {
-                                    bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)', 'TEXT'],
+                                    bodies: ['HEADER.FIELDS (SUBJECT DATE)'],
                                     struct: true,
                                 });
 
@@ -45,15 +42,11 @@ export class EmailService {
                                     message.on('body', (stream, info) => {
                                         let buffer: string;
 
-                                        stream.on('data', (chunk) => {
-                                            buffer += chunk.toString('utf8');
-                                        });
+                                        stream.on('data', (chunk) => (buffer += chunk.toString('utf8')));
 
                                         stream.once('end', function () {
-                                            if (info.which === 'HEADER.FIELDS (FROM TO SUBJECT DATE)') {
+                                            if (info.which === 'HEADER.FIELDS (SUBJECT DATE)') {
                                                 mail.header = Imap.parseHeader(buffer);
-                                            } else if ('TEXT') {
-                                                mail.text = buffer;
                                             }
                                         });
                                     });
@@ -75,6 +68,6 @@ export class EmailService {
             connection.connect();
         });
 
-        console.log(mails.map((mail) => mail.header));
+        return mails;
     }
 }

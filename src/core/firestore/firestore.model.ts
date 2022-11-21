@@ -1,5 +1,6 @@
 import { FirestoreService } from './firestore.service';
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { convertFirestoreDate } from '../utils/utils';
 
 export abstract class FirestoreModel {
     abstract collection;
@@ -15,24 +16,23 @@ export abstract class FirestoreModel {
     }
 
     public static async queryAll(): Promise<FirestoreModel[]> {
-        // @ts-ignore
-        const snapshot = await new this().getCollection().get();
-        return snapshot.docs.map((doc) => {
-            // @ts-ignore
-            const model = new this();
-            model.setFields(doc.data());
-            return model;
-        });
+        const snapshot = await this.getModel(this).getCollection().get();
+        const models = [];
+
+        for (const doc of snapshot.docs) {
+            const data = doc.data();
+            convertFirestoreDate(doc.data());
+            models.push(this.firestoreToModel(data, this));
+        }
+
+        return models;
     }
 
     public static async queryById(id: string): Promise<FirestoreModel> {
-        // @ts-ignore
-        const model = new this();
-
-        const snapshot = await model.getCollection().doc(id).get();
-        model.setFields(snapshot.data());
-
-        return model;
+        const snapshot = await this.getModel(this).getCollection().doc(id).get();
+        const data = snapshot.data();
+        convertFirestoreDate(data);
+        return this.firestoreToModel(data, this);
     }
 
     public getCollection() {
@@ -72,5 +72,19 @@ export abstract class FirestoreModel {
     protected static addField(object, fieldname, defaultValue = null) {
         object[fieldname] = defaultValue;
         Object.defineProperty(object, fieldname, {});
+    }
+
+    public static getModel(modelRef: typeof FirestoreModel): FirestoreModel {
+        // @ts-ignore
+        return new modelRef();
+    }
+
+    public static firestoreToModel(
+        data: FirebaseFirestore.DocumentData,
+        modelRef: typeof FirestoreModel,
+    ): FirestoreModel {
+        const model = this.getModel(modelRef);
+        model.setFields(data);
+        return model;
     }
 }
