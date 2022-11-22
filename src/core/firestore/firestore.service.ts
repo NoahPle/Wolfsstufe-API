@@ -1,10 +1,20 @@
 import * as admin from 'firebase-admin';
 import * as firebaseAuth from 'firebase/auth';
+import * as firebase from 'firebase/app';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { DecodedIdToken } from 'firebase-admin/lib/auth';
 
 admin.initializeApp({
     credential: admin.credential.cert('wolfsstufe-dev-firebase-adminsdk.json'),
+});
+
+firebase.initializeApp({
+    apiKey: 'AIzaSyBNymQOIjtppmNtp9I0q6Zmko3ijYiRryQ',
+    authDomain: 'wolfsstufe-dev.firebaseapp.com',
+    projectId: 'wolfsstufe-dev',
+    storageBucket: 'wolfsstufe-dev.appspot.com',
+    messagingSenderId: '948113123953',
+    appId: '1:948113123953:web:8dffef961d3296c4f989d0',
 });
 
 admin.firestore().settings({ timestampsInSnapshots: true });
