@@ -1,20 +1,10 @@
 import * as admin from 'firebase-admin';
-import * as firebase from 'firebase/app';
 import * as firebaseAuth from 'firebase/auth';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { DecodedIdToken } from 'firebase-admin/lib/auth';
 
 admin.initializeApp({
     credential: admin.credential.cert('wolfsstufe-dev-firebase-adminsdk.json'),
-});
-
-firebase.initializeApp({
-    apiKey: 'AIzaSyBNymQOIjtppmNtp9I0q6Zmko3ijYiRryQ',
-    authDomain: 'wolfsstufe-dev.firebaseapp.com',
-    projectId: 'wolfsstufe-dev',
-    storageBucket: 'wolfsstufe-dev.appspot.com',
-    messagingSenderId: '948113123953',
-    appId: '1:948113123953:web:8dffef961d3296c4f989d0',
 });
 
 admin.firestore().settings({ timestampsInSnapshots: true });
@@ -37,17 +27,16 @@ export class FirestoreService {
             );
 
             const claims = (await this.getAuth().getUser(firebaseUserCredential.user.uid)).customClaims;
+            if (claims.role === 'disabled') return null;
             return this.getAuth().createCustomToken(firebaseUserCredential.user.uid, claims);
         } catch (e) {
-            throw new HttpException('Wrong email or password', HttpStatus.FORBIDDEN);
+            return null;
         }
     }
 
-    static async verifyCustomToken(token: string): Promise<DecodedIdToken> {
+    static async verifyIdToken(token: string): Promise<DecodedIdToken> {
         try {
-            const userCredential = await firebaseAuth.signInWithCustomToken(firebaseAuth.getAuth(), token);
-            const idToken = await userCredential.user.getIdToken();
-            return await this.getAuth().verifyIdToken(idToken);
+            return await this.getAuth().verifyIdToken(token);
         } catch (e) {
             throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
         }

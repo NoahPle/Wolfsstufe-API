@@ -1,22 +1,30 @@
 import * as Imap from 'imap';
 import * as moment from 'moment';
+import { AdminConfigModel } from '../../modules/admin/admin-config.model';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 export class EmailService {
-    private static getImap(): Imap {
+    private static getImap(email: string, password: string): Imap {
         return new Imap({
             host: 'imap.gmail.com',
-            user: 'pearl@sturmvogel.ch',
-            password: 'dpneahtufpokvhbf',
+            user: email,
+            password: password,
             port: 993,
             tls: true,
             tlsOptions: { rejectUnauthorized: false },
         });
     }
 
-    public static async fetchEmails() {
-        const connection = this.getImap();
+    public static async fetchEmails(): Promise<any[]> {
+        const account = await AdminConfigModel.queryById('email');
 
-        const mails: any[] = await new Promise((resolve, reject) => {
+        if (!account) {
+            throw new HttpException('Account not set', HttpStatus.FAILED_DEPENDENCY);
+        }
+
+        const connection = this.getImap(account.email, account.password);
+
+        return await new Promise((resolve, reject) => {
             const mails = [];
 
             connection.once('ready', () => {
@@ -67,7 +75,18 @@ export class EmailService {
             connection.once('error', (err) => reject(err));
             connection.connect();
         });
+    }
 
-        return mails;
+    public static async checkAccountValid(email: string, password: string): Promise<boolean> {
+        const connection = this.getImap(email, password);
+
+        const res: any = await new Promise((resolve) => {
+            connection.once('error', () => resolve(false));
+            connection.once('ready', () => resolve(true));
+            connection.connect();
+        });
+
+        connection.end();
+        return res;
     }
 }

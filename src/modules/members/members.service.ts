@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ModelService } from '../../core/firestore/model-service';
 import { CreateMemberDto } from './dto/create-member-dto';
 import { Member } from './member.model';
@@ -6,6 +6,8 @@ import { UpdateMemberDto } from './dto/update-member-dto';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import * as FormData from 'form-data';
+import { AdminController } from '../admin/admin.controller';
+import { AdminConfigModel } from '../admin/admin-config.model';
 
 @Injectable()
 export class MembersService extends ModelService {
@@ -30,16 +32,22 @@ export class MembersService extends ModelService {
     }
 
     async syncWithMidata() {
-        const formData = new FormData();
-        formData.append('person[email]', 'pearl@sturmvogel.ch');
-        formData.append('person[password]', 'IzgGTA5mR!MI');
+        const account = await AdminConfigModel.queryById('midata');
 
-        const account = await firstValueFrom(this.http.post('https://db.scout.ch/users/sign_in.json', formData));
+        if (!account) {
+            throw new HttpException('Account not set', HttpStatus.FAILED_DEPENDENCY);
+        }
+
+        const formData = new FormData();
+        formData.append('person[email]', account.email);
+        formData.append('person[password]', account.password);
+
+        const credentials = await firstValueFrom(this.http.post('https://db.scout.ch/users/sign_in.json', formData));
 
         const config = {
             params: {
                 user_email: 'pearl@sturmvogel.ch',
-                user_token: account.data.people[0].authentication_token,
+                user_token: credentials.data.people[0].authentication_token,
             },
         };
 

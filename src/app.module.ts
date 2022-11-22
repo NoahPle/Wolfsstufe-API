@@ -6,6 +6,7 @@ import { UsersModule } from './modules/users/usersModule';
 import { MembersModule } from './modules/members/members.module';
 import { MigrationsModule } from './modules/migrations/migrations.module';
 import { BullModule } from '@nestjs/bull';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
     imports: [
@@ -15,6 +16,7 @@ import { BullModule } from '@nestjs/bull';
         AbsencesModule,
         MembersModule,
         MigrationsModule,
+        AdminModule,
         BullModule.forRoot({
             redis: {
                 host: 'localhost',

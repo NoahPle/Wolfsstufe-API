@@ -12,7 +12,7 @@ export class UsersService extends ModelService {
             const uid = await FirestoreService.createUser(createUserDto.email);
 
             if (uid) {
-                await this.addWithDto(createUserDto, User);
+                await this.setWithDto({ id: uid, ...createUserDto }, User);
                 const user = await User.queryById(uid);
                 await FirestoreService.setCustomClaims(uid, user.getJson());
             }
@@ -20,7 +20,7 @@ export class UsersService extends ModelService {
     }
 
     public async updateUser(updateUserDto: UpdateUserDto, token: string) {
-        const decodedIdToken = await FirestoreService.verifyCustomToken(token);
+        const decodedIdToken = await FirestoreService.verifyIdToken(token);
 
         if (updateUserDto.role === UserRole.admin && decodedIdToken.role !== UserRole.admin) {
             throw new HttpException('Only Admins can upgrade to admin', HttpStatus.FORBIDDEN);

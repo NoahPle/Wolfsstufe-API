@@ -9,7 +9,7 @@ export class AdminGuard implements CanActivate {
         const message: IncomingMessage = context.getArgs()[0];
         if (message.headers.authorization) {
             const token: string = message.headers.authorization.split('Bearer ')[1];
-            const decodedIdToken = await FirestoreService.verifyCustomToken(token);
+            const decodedIdToken = await FirestoreService.verifyIdToken(token);
             return decodedIdToken.role === UserRole.admin;
         } else {
             return false;

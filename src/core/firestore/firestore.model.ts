@@ -31,8 +31,13 @@ export abstract class FirestoreModel {
     public static async queryById(id: string): Promise<FirestoreModel> {
         const snapshot = await this.getModel(this).getCollection().doc(id).get();
         const data = snapshot.data();
-        convertFirestoreDate(data);
-        return this.firestoreToModel(data, this);
+
+        if (data) {
+            convertFirestoreDate(data);
+            return this.firestoreToModel(data, this);
+        } else {
+            return null;
+        }
     }
 
     public getCollection() {
