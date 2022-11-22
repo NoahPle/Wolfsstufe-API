@@ -2,6 +2,7 @@ import * as Imap from 'imap';
 import * as moment from 'moment';
 import { AdminConfigModel } from '../../modules/admin/admin-config.model';
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { CypherService } from './cypher.service';
 
 export class EmailService {
     private static getImap(email: string, password: string): Imap {
@@ -22,7 +23,7 @@ export class EmailService {
             throw new HttpException('Account not set', HttpStatus.FAILED_DEPENDENCY);
         }
 
-        const connection = this.getImap(account.email, account.password);
+        const connection = this.getImap(account.email, CypherService.decrypt(account.password));
 
         return await new Promise((resolve, reject) => {
             const mails = [];

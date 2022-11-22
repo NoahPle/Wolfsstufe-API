@@ -5,6 +5,7 @@ import { EmailService } from '../../core/services/email.service';
 import * as FormData from 'form-data';
 import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
+import { CypherService } from '../../core/services/cypher.service';
 
 @Injectable()
 export class AdminService extends ModelService {
@@ -21,7 +22,7 @@ export class AdminService extends ModelService {
         );
 
         if (account) {
-            await this.setWithDto({ id: 'midata', email, password }, AdminConfigModel);
+            await this.setWithDto({ id: 'midata', email, password: CypherService.encrypt(password) }, AdminConfigModel);
         }
 
         return { valid: !!account };
@@ -29,7 +30,7 @@ export class AdminService extends ModelService {
 
     public async setEmailAccount(email: string, password: string) {
         if (await EmailService.checkAccountValid(email, password)) {
-            await this.setWithDto({ id: 'email', email, password }, AdminConfigModel);
+            await this.setWithDto({ id: 'email', email, password: CypherService.encrypt(password) }, AdminConfigModel);
             return { valid: true };
         } else {
             return { valid: false };

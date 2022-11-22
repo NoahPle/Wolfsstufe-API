@@ -6,8 +6,8 @@ import { UpdateMemberDto } from './dto/update-member-dto';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import * as FormData from 'form-data';
-import { AdminController } from '../admin/admin.controller';
 import { AdminConfigModel } from '../admin/admin-config.model';
+import { CypherService } from '../../core/services/cypher.service';
 
 @Injectable()
 export class MembersService extends ModelService {
@@ -40,7 +40,7 @@ export class MembersService extends ModelService {
 
         const formData = new FormData();
         formData.append('person[email]', account.email);
-        formData.append('person[password]', account.password);
+        formData.append('person[password]', CypherService.decrypt(account.password));
 
         const credentials = await firstValueFrom(this.http.post('https://db.scout.ch/users/sign_in.json', formData));
 

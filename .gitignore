@@ -36,3 +36,7 @@ lerna-debug.log*
 
 #sdk
 wolfsstufe-dev-firebase-adminsdk.json
+
+#keys
+private.pem
+public.pem
