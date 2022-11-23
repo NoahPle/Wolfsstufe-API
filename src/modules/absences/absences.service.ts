@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ModelService } from '../../core/firestore/model-service';
 import { AbsenceList } from './models/absence-list.model';
 import { CreateAbsenceDto } from './dto/create-absence.dto';
-import { AbsenceEntry, AttendanceState } from './models/entry.model';
+import { AbsenceEntry, EntryType } from './models/entry.model';
 import { BulkUpdateAbsenceEntryDto } from './dto/bulk-update-absence-entry.dto';
 import * as moment from 'moment';
 import { Member } from '../members/member.model';
@@ -11,28 +11,32 @@ import { EmailService } from '../../core/services/email.service';
 @Injectable()
 export class AbsencesService extends ModelService {
     async createAbsenceList(createAbsenceDto: CreateAbsenceDto) {
-        if (!createAbsenceDto.date) {
-            createAbsenceDto.date = moment().startOf('day').toDate();
+        createAbsenceDto.date = moment(createAbsenceDto.date).startOf('day').toDate();
+        let list = await AbsenceList.findByDate(moment(createAbsenceDto.date));
+
+        if (!list) {
+            list = await AbsenceList.queryById(await this.addWithDto(createAbsenceDto, AbsenceList));
         }
 
-        return await this.addWithDto(createAbsenceDto, AbsenceList);
+        await this.setAbsencesWithEmails(list);
     }
 
     async updateEntries(dto: BulkUpdateAbsenceEntryDto) {
-        await this.bulkSetWithDto(dto.absenceEntries, AbsenceEntry, dto.absenceListId);
+        await this.bulkSetWithDto(dto.entries, AbsenceEntry, dto.id);
     }
 
-    async setAbsencesWithEmails() {
-        const mails = await EmailService.fetchEmails();
-        const recentMails = mails.filter((mail) => {
-            const dateStrings = mail.header?.date || mail.header?.undefineddate;
-            return dateStrings.length ? moment(dateStrings[0]).isAfter(moment().startOf('week')) : false;
-        });
+    async syncEntries(id: string) {
+        const list = await AbsenceList.queryById(id);
+        if (list) await this.setAbsencesWithEmails(list);
+    }
+
+    async setAbsencesWithEmails(list: AbsenceList) {
+        const mails = await EmailService.fetchEmails(moment(list.date).startOf('week'));
 
         const members: Member[] = await Member.queryAll();
         const results = [];
 
-        for (const mail of recentMails) {
+        for (const mail of mails) {
             const subject: string[] = mail.header?.undefinedsubject || mail.header?.subject;
 
             if (subject.length) {
@@ -58,17 +62,10 @@ export class AbsencesService extends ModelService {
         const filteredResults: Member[] = [...new Set(results)];
 
         if (filteredResults.length) {
-            const nextSaturday =
-                moment().isoWeekday() <= 6 ? moment().isoWeekday(6) : moment().add(1, 'weeks').isoWeekday(6);
-
-            const listId =
-                (await AbsenceList.findByDate(nextSaturday)).id ||
-                (await this.createAbsenceList({ date: nextSaturday.toDate() }));
-
             const dto: BulkUpdateAbsenceEntryDto = {
-                absenceListId: listId,
-                absenceEntries: filteredResults.map((member) => {
-                    return { id: member.id, state: AttendanceState.excused };
+                id: list.id,
+                entries: filteredResults.map((member) => {
+                    return { id: member.id, excused: true, type: EntryType.member };
                 }),
             };
 

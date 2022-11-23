@@ -1,7 +1,6 @@
-import { IsDate, IsOptional } from 'class-validator';
+import { IsDateString } from 'class-validator';
 
 export class CreateAbsenceDto {
-    @IsDate()
-    @IsOptional()
+    @IsDateString()
     date: Date;
 }

@@ -1,10 +1,9 @@
 import { FirestoreModel } from '../../../core/firestore/firestore.model';
 import { AbsenceList } from './absence-list.model';
 
-export enum AttendanceState {
-    present = 'present',
-    absent = 'absent',
-    excused = 'excused',
+export enum EntryType {
+    leader = 'leader',
+    member = 'member',
 }
 
 export class AbsenceEntry extends FirestoreModel {
@@ -14,6 +13,8 @@ export class AbsenceEntry extends FirestoreModel {
     constructor() {
         super();
         FirestoreModel.addField(this, 'id');
-        FirestoreModel.addField(this, 'state', 'absent');
+        FirestoreModel.addField(this, 'present', false);
+        FirestoreModel.addField(this, 'excused', false);
+        FirestoreModel.addField(this, 'type', 'member');
     }
 }

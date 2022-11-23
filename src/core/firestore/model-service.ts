@@ -2,7 +2,7 @@ import { FirestoreModel } from './firestore.model';
 import { FirestoreService } from './firestore.service';
 
 export abstract class ModelService {
-    protected async add(model: FirestoreModel) {
+    protected async add(model: FirestoreModel): Promise<string> {
         return (await this.bulkAdd([model]))[0];
     }
 
@@ -14,7 +14,7 @@ export abstract class ModelService {
         await this.bulkDelete([id], modelRef);
     }
 
-    protected async bulkAdd(models: FirestoreModel[]) {
+    protected async bulkAdd(models: FirestoreModel[]): Promise<string[]> {
         const batch = FirestoreService.getInstance().batch();
         const ids = [];
 
@@ -41,7 +41,7 @@ export abstract class ModelService {
                 const json = model.getJson();
 
                 for (const key of Object.keys(json)) {
-                    if (!json[key]) {
+                    if (json[key] === null || json[key] === undefined) {
                         delete json[key];
                     }
                 }
@@ -74,11 +74,11 @@ export abstract class ModelService {
         await this.bulkSet(this.generateModels(dtos, modelRef, parentId));
     }
 
-    protected async addWithDto(dto = {}, modelRef: typeof FirestoreModel, parentId?: string) {
+    protected async addWithDto(dto = {}, modelRef: typeof FirestoreModel, parentId?: string): Promise<string> {
         return (await this.bulkAddWithDto([dto], modelRef, parentId))[0];
     }
 
-    protected async bulkAddWithDto(dtos = [], modelRef: typeof FirestoreModel, parentId?: string) {
+    protected async bulkAddWithDto(dtos = [], modelRef: typeof FirestoreModel, parentId?: string): Promise<string[]> {
         return await this.bulkAdd(this.generateModels(dtos, modelRef, parentId));
     }
 

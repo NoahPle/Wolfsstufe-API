@@ -16,7 +16,7 @@ export class EmailService {
         });
     }
 
-    public static async fetchEmails(): Promise<any[]> {
+    public static async fetchEmails(since: moment.Moment): Promise<any[]> {
         const account = await AdminConfigModel.queryById('email');
 
         if (!account) {
@@ -31,7 +31,7 @@ export class EmailService {
             connection.once('ready', () => {
                 connection.openBox('Abmeldungen', true, (err, box) => {
                     if (err) reject(err);
-                    const dateString = moment().subtract(14, 'days').format('MMM DD, YYYY');
+                    const dateString = since.format('MMM DD, YYYY');
 
                     connection.search(
                         [

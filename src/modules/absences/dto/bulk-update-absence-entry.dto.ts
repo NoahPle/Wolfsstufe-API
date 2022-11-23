@@ -1,13 +1,13 @@
 import { IsArray, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
-import { UpdateAbsenceEntryDto } from './update-absence-entry.dto';
+import { CreateAbsenceEntryDto } from './create-absence-entry.dto';
 
 export class BulkUpdateAbsenceEntryDto {
     @IsString()
-    absenceListId: string;
+    id: string;
 
     @IsArray()
     @ValidateNested({ each: true })
-    @Type(() => UpdateAbsenceEntryDto)
-    absenceEntries: UpdateAbsenceEntryDto[];
+    @Type(() => CreateAbsenceEntryDto)
+    entries: CreateAbsenceEntryDto[];
 }

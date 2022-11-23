@@ -1,11 +1,18 @@
-import { AttendanceState } from '../models/entry.model';
-import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { EntryType } from '../models/entry.model';
+import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class CreateAbsenceEntryDto {
     @IsString()
     readonly id: string;
 
+    @IsBoolean()
     @IsOptional()
-    @IsEnum(AttendanceState)
-    state: AttendanceState;
+    present?: boolean;
+
+    @IsBoolean()
+    @IsOptional()
+    excused?: boolean;
+
+    @IsEnum(EntryType)
+    type: EntryType;
 }
