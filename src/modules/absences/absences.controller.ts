@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { AbsencesService } from './absences.service';
 import { CreateAbsenceDto } from './dto/create-absence.dto';
 import { UserGuard } from '../../guards/user-guard';
@@ -20,7 +20,12 @@ export class AbsencesController {
     }
 
     @Put('sync/:id')
-    async syncEntries(@Param('id') id: string) {
+    async syncEntries(@Param('id') id: string): Promise<any> {
         await this.absencesService.syncEntries(id);
+    }
+
+    @Delete(':id')
+    async deleteList(@Param('id') id: string): Promise<any> {
+        return await this.absencesService.deleteList(id);
     }
 }

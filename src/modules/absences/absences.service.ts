@@ -7,6 +7,8 @@ import { BulkUpdateAbsenceEntryDto } from './dto/bulk-update-absence-entry.dto';
 import * as moment from 'moment';
 import { Member } from '../members/member.model';
 import { EmailService } from '../../core/services/email.service';
+import { User } from '../users/user.model';
+import { CreateAbsenceEntryDto } from './dto/create-absence-entry.dto';
 
 @Injectable()
 export class AbsencesService extends ModelService {
@@ -16,9 +18,37 @@ export class AbsencesService extends ModelService {
 
         if (!list) {
             list = await AbsenceList.queryById(await this.addWithDto(createAbsenceDto, AbsenceList));
+            await this.createAllEntries(list);
         }
 
         await this.setAbsencesWithEmails(list);
+    }
+
+    async createAllEntries(list) {
+        const members = await Member.queryAll();
+        const leaders = await User.queryAll();
+
+        const entries: CreateAbsenceEntryDto[] = [];
+
+        for (const member of members) {
+            entries.push({
+                id: member.id,
+                type: EntryType.member,
+                present: false,
+                excused: false,
+            });
+        }
+
+        for (const leader of leaders) {
+            entries.push({
+                id: leader.id,
+                type: EntryType.leader,
+                present: false,
+                excused: false,
+            });
+        }
+
+        await this.bulkSetWithDto(entries, AbsenceEntry, list.id);
     }
 
     async updateEntries(dto: BulkUpdateAbsenceEntryDto) {
@@ -28,6 +58,10 @@ export class AbsencesService extends ModelService {
     async syncEntries(id: string) {
         const list = await AbsenceList.queryById(id);
         if (list) await this.setAbsencesWithEmails(list);
+    }
+
+    async deleteList(id: string) {
+        await this.delete(id, AbsenceList);
     }
 
     async setAbsencesWithEmails(list: AbsenceList) {
