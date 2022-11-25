@@ -9,6 +9,7 @@ import { BullModule } from '@nestjs/bull';
 import { AdminModule } from './modules/admin/admin.module';
 import { JobsModule } from './modules/jobs/jobs.module';
 import { CoreModule } from './core/core.module';
+import { RulesModule } from './modules/rules/rules.module';
 
 @Module({
     imports: [
@@ -21,6 +22,7 @@ import { CoreModule } from './core/core.module';
         AdminModule,
         JobsModule,
         CoreModule,
+        RulesModule,
         BullModule.forRoot({
             redis: {
                 host: 'localhost',
