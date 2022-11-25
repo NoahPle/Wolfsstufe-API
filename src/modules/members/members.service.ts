@@ -1,17 +1,13 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ModelService } from '../../core/firestore/model-service';
 import { CreateMemberDto } from './dto/create-member-dto';
 import { Member } from './member.model';
 import { UpdateMemberDto } from './dto/update-member-dto';
-import { HttpService } from '@nestjs/axios';
-import { firstValueFrom } from 'rxjs';
-import * as FormData from 'form-data';
-import { AdminConfigModel } from '../admin/admin-config.model';
-import { CypherService } from '../../core/services/cypher.service';
+import { MidataService } from '../../core/services/midata.service';
 
 @Injectable()
 export class MembersService extends ModelService {
-    constructor(private http: HttpService) {
+    constructor(private midataService: MidataService) {
         super();
     }
 
@@ -32,44 +28,23 @@ export class MembersService extends ModelService {
     }
 
     async syncWithMidata() {
-        const account = await AdminConfigModel.queryById('midata');
+        const credentials = await this.midataService.getCredentials();
+        const people = await this.midataService.getGroup('7837', credentials);
 
-        if (!account) {
-            throw new HttpException('Account not set', HttpStatus.FAILED_DEPENDENCY);
-        }
-
-        const formData = new FormData();
-        formData.append('person[email]', account.email);
-        formData.append('person[password]', CypherService.decrypt(account.password));
-
-        const credentials = await firstValueFrom(this.http.post('https://db.scout.ch/users/sign_in.json', formData));
-
-        const config = {
-            params: {
-                user_email: 'pearl@sturmvogel.ch',
-                user_token: credentials.data.people[0].authentication_token,
-            },
-        };
-
-        const response = await firstValueFrom(this.http.get('https://db.scout.ch/groups/7837/people.json', config));
-
-        const people = response.data.people;
         const models: Member[] = await Promise.all(
             people.map(async (person) => {
-                const details = await firstValueFrom(this.http.get(person.href, config));
-                const numbers: any[] = details.data.linked.phone_numbers;
-                const labels: string[] = numbers.map((number) => number.label);
-                const get = (label) => numbers.find((number) => number.label === label).number;
+                const numbers = await this.midataService.getPhoneNumbers(person.href, credentials);
+                console.log(numbers);
                 let number = null;
 
-                if (labels.includes('Mutter')) {
-                    number = get('Mutter');
-                } else if (labels.includes('Vater')) {
-                    number = get('Vater');
-                } else if (labels.includes('Mobil')) {
-                    number = get('Mobil');
-                } else if (labels.includes('Privat')) {
-                    number = get('Privat');
+                if (numbers['Mutter']) {
+                    number = numbers['Mutter'];
+                } else if (numbers['Vater']) {
+                    number = numbers['Vater'];
+                } else if (numbers['Mobil']) {
+                    number = numbers['Mobil'];
+                } else if (numbers['Privat']) {
+                    number = numbers['Privat'];
                 }
 
                 const model = new Member();

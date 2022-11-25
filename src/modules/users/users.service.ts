@@ -4,9 +4,14 @@ import { User, UserRole } from './user.model';
 import { FirestoreService } from '../../core/firestore/firestore.service';
 import { ModelService } from '../../core/firestore/model-service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { MidataService } from '../../core/services/midata.service';
 
 @Injectable()
 export class UsersService extends ModelService {
+    constructor(private midataService: MidataService) {
+        super();
+    }
+
     public async createUser(createUserDto: CreateUserDto) {
         if (createUserDto.role !== UserRole.admin) {
             const uid = await FirestoreService.createUser(createUserDto.email);
@@ -47,5 +52,30 @@ export class UsersService extends ModelService {
 
     public async disableUser(id: string) {
         await this.setWithDto({ id, role: UserRole.disabled }, User);
+    }
+
+    public async getMidataUsers() {
+        const credentials = await this.midataService.getCredentials();
+        const users = await this.midataService.getGroup('1412', credentials);
+
+        const enrichedUsers = await Promise.all(
+            users.map(async (user) => {
+                const numbers = await this.midataService.getPhoneNumbers(user.href, credentials);
+
+                return {
+                    midataId: user.id,
+                    firstname: user.first_name,
+                    lastname: user.last_name,
+                    pfadiname: user.nickname,
+                    email: user.email,
+                    role: UserRole.leiter,
+                    phone: numbers['Mobil'],
+                };
+            }),
+        );
+
+        const existingUsers = await User.queryAll();
+        const userEmails = existingUsers.map((user) => user.email);
+        return enrichedUsers.filter((user) => !userEmails.includes(user.email));
     }
 }

@@ -13,6 +13,7 @@ export class User extends FirestoreModel {
     constructor() {
         super();
         FirestoreModel.addField(this, 'id');
+        FirestoreModel.addField(this, 'midataId');
         FirestoreModel.addField(this, 'email');
         FirestoreModel.addField(this, 'pfadiname');
         FirestoreModel.addField(this, 'firstname');

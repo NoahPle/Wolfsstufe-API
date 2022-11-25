@@ -6,10 +6,10 @@ export class Member extends FirestoreModel {
     constructor() {
         super();
         FirestoreModel.addField(this, 'id');
+        FirestoreModel.addField(this, 'midataId');
         FirestoreModel.addField(this, 'firstname');
         FirestoreModel.addField(this, 'lastname');
         FirestoreModel.addField(this, 'pfadiname');
         FirestoreModel.addField(this, 'phone');
-        FirestoreModel.addField(this, 'midataId');
     }
 }

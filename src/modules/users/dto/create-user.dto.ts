@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsEmail, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 import { UserRole } from '../user.model';
 
 export class CreateUserDto {
@@ -22,4 +22,8 @@ export class CreateUserDto {
 
     @IsEnum(UserRole)
     readonly role: UserRole;
+
+    @IsString()
+    @IsOptional()
+    readonly midataId: number;
 }

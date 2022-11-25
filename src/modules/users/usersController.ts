@@ -1,4 +1,4 @@
-import { Body, Headers, Controller, Post, Put, UseGuards, Delete, Param } from '@nestjs/common';
+import { Body, Headers, Controller, Post, Put, UseGuards, Delete, Param, Get } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UsersService } from './users.service';
 import { StuleiGuard } from '../../guards/stulei.guard';
@@ -24,5 +24,10 @@ export class UsersController {
     @UseGuards(AdminGuard)
     private async disableUser(@Param('id') id: string) {
         await this.userService.disableUser(id);
+    }
+
+    @Get('midata')
+    async getMidataUsers() {
+        return await this.userService.getMidataUsers();
     }
 }
