@@ -22,8 +22,8 @@ export class MembersController {
 
     @Delete(':id')
     @UseGuards(StuleiGuard)
-    async deleteMember(@Param('id') id: string) {
-        await this.membersService.deleteMember(id);
+    async disableMember(@Param('id') id: string) {
+        await this.membersService.disableMember(id);
     }
 
     @Post('sync')

@@ -25,5 +25,5 @@ export class CreateUserDto {
 
     @IsString()
     @IsOptional()
-    readonly midataId: number;
+    readonly midataId: string;
 }

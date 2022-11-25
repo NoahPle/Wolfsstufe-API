@@ -6,12 +6,20 @@ export abstract class ModelService {
         return (await this.bulkAdd([model]))[0];
     }
 
-    protected async set(model: FirestoreModel) {
-        await this.bulkSet([model]);
+    protected async addWithDto(dto = {}, modelRef: typeof FirestoreModel, parentId?: string): Promise<string> {
+        return (await this.bulkAddWithDto([dto], modelRef, parentId))[0];
     }
 
-    protected async delete(id: string, modelRef: typeof FirestoreModel) {
-        await this.bulkDelete([id], modelRef);
+    protected async bulkAddWithDto(dtos = [], modelRef: typeof FirestoreModel, parentId?: string): Promise<string[]> {
+        return await this.bulkAdd(this.generateModels(dtos, modelRef, parentId));
+    }
+
+    protected async addWithId(dto = {}, modelRef: typeof FirestoreModel, parentId?: string) {
+        await this.bulkAddWithId([dto], modelRef, parentId);
+    }
+
+    protected async bulkAddWithId(dtos = [], modelRef: typeof FirestoreModel, parentId?: string) {
+        await this.bulkSet(this.generateModels(dtos, modelRef, parentId), false);
     }
 
     protected async bulkAdd(models: FirestoreModel[]): Promise<string[]> {
@@ -32,7 +40,19 @@ export abstract class ModelService {
         return ids;
     }
 
-    protected async bulkSet(models: FirestoreModel[]) {
+    protected async set(model: FirestoreModel) {
+        await this.bulkSet([model]);
+    }
+
+    protected async setWithDto(dto = {}, modelRef: typeof FirestoreModel, parentId?: string) {
+        await this.bulkSetWithDto([dto], modelRef, parentId);
+    }
+
+    protected async bulkSetWithDto(dtos = [], modelRef: typeof FirestoreModel, parentId?: string) {
+        await this.bulkSet(this.generateModels(dtos, modelRef, parentId));
+    }
+
+    protected async bulkSet(models: FirestoreModel[], removeNull = true) {
         const batch = FirestoreService.getInstance().batch();
 
         for (const model of models) {
@@ -40,9 +60,11 @@ export abstract class ModelService {
                 const ref = model.getCollection().doc(model.id);
                 const json = model.getJson();
 
-                for (const key of Object.keys(json)) {
-                    if (json[key] === null || json[key] === undefined) {
-                        delete json[key];
+                if (removeNull) {
+                    for (const key of Object.keys(json)) {
+                        if (json[key] === null || json[key] === undefined) {
+                            delete json[key];
+                        }
                     }
                 }
 
@@ -51,6 +73,10 @@ export abstract class ModelService {
         }
 
         await batch.commit();
+    }
+
+    protected async delete(id: string, modelRef: typeof FirestoreModel) {
+        await this.bulkDelete([id], modelRef);
     }
 
     protected async bulkDelete(ids: string[], modelRef: typeof FirestoreModel) {
@@ -64,22 +90,6 @@ export abstract class ModelService {
         }
 
         await batch.commit();
-    }
-
-    protected async setWithDto(dto = {}, modelRef: typeof FirestoreModel, parentId?: string) {
-        await this.bulkSetWithDto([dto], modelRef, parentId);
-    }
-
-    protected async bulkSetWithDto(dtos = [], modelRef: typeof FirestoreModel, parentId?: string) {
-        await this.bulkSet(this.generateModels(dtos, modelRef, parentId));
-    }
-
-    protected async addWithDto(dto = {}, modelRef: typeof FirestoreModel, parentId?: string): Promise<string> {
-        return (await this.bulkAddWithDto([dto], modelRef, parentId))[0];
-    }
-
-    protected async bulkAddWithDto(dtos = [], modelRef: typeof FirestoreModel, parentId?: string): Promise<string[]> {
-        return await this.bulkAdd(this.generateModels(dtos, modelRef, parentId));
     }
 
     private generateModels(dtos = [], modelRef: typeof FirestoreModel, parentId?: string): FirestoreModel[] {

@@ -48,7 +48,7 @@ export class AbsencesService extends ModelService {
             });
         }
 
-        await this.bulkSetWithDto(entries, AbsenceEntry, list.id);
+        await this.bulkAddWithId(entries, AbsenceEntry, list.id);
     }
 
     async updateEntries(dto: BulkUpdateAbsenceEntryDto) {

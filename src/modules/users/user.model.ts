@@ -21,4 +21,9 @@ export class User extends FirestoreModel {
         FirestoreModel.addField(this, 'phone');
         FirestoreModel.addField(this, 'role');
     }
+
+    public static override async queryAll(disabled = false) {
+        const models = await super.queryAll();
+        return disabled ? models : models.filter((model) => model.role !== UserRole.disabled);
+    }
 }

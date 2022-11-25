@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateMemberDto {
     @IsString()
@@ -18,4 +18,8 @@ export class CreateMemberDto {
     @IsNumber()
     @IsOptional()
     midataId: string;
+
+    @IsBoolean()
+    @IsOptional()
+    disabled: boolean = false;
 }

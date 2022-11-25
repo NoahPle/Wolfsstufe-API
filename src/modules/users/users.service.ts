@@ -17,7 +17,7 @@ export class UsersService extends ModelService {
             const uid = await FirestoreService.createUser(createUserDto.email);
 
             if (uid) {
-                await this.setWithDto({ id: uid, ...createUserDto }, User);
+                await this.addWithId({ id: uid, ...createUserDto }, User);
                 const user = await User.queryById(uid);
                 await FirestoreService.setCustomClaims(uid, user.getJson());
             }
@@ -74,7 +74,7 @@ export class UsersService extends ModelService {
             }),
         );
 
-        const existingUsers = await User.queryAll();
+        const existingUsers = await User.queryAll(true);
         const userEmails = existingUsers.map((user) => user.email);
         return enrichedUsers.filter((user) => !userEmails.includes(user.email));
     }

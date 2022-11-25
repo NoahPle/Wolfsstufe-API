@@ -11,5 +11,11 @@ export class Member extends FirestoreModel {
         FirestoreModel.addField(this, 'lastname');
         FirestoreModel.addField(this, 'pfadiname');
         FirestoreModel.addField(this, 'phone');
+        FirestoreModel.addField(this, 'disabled', false);
+    }
+
+    public static override async queryAll(disabled = false) {
+        const models = await super.queryAll();
+        return disabled ? models : models.filter((model) => !model.disabled);
     }
 }

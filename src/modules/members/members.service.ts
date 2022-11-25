@@ -19,8 +19,8 @@ export class MembersService extends ModelService {
         await this.setWithDto(updateMemberDto, Member);
     }
 
-    async deleteMember(id: string) {
-        await this.delete(id, Member);
+    async disableMember(id: string) {
+        await this.setWithDto({ id, disabled: true }, Member);
     }
 
     async bulkCreateMembers(createMemberDtos: CreateMemberDto[]) {
@@ -34,7 +34,6 @@ export class MembersService extends ModelService {
         const models: Member[] = await Promise.all(
             people.map(async (person) => {
                 const numbers = await this.midataService.getPhoneNumbers(person.href, credentials);
-                console.log(numbers);
                 let number = null;
 
                 if (numbers['Mutter']) {
@@ -60,34 +59,32 @@ export class MembersService extends ModelService {
             }),
         );
 
-        const members = await Member.queryAll();
-        const storedMidataIds = members.map((member) => member.midataId);
-        const oldModels = models.filter((model) => storedMidataIds.includes(model.midataId));
-        const newModels = models.filter((model) => !storedMidataIds.includes(model.midataId));
+        const members = await Member.queryAll(true);
+        const storedMidataIds = members.filter((member) => member.midataId).map((member) => member.midataId);
+        const filteredModels = models.filter((model) => !storedMidataIds.includes(model.midataId));
 
-        for (const model of oldModels) {
-            model.id = members.find((member) => member.midataId === model.midataId).id;
-        }
+        const existingModels = [];
+        const newModels = [];
 
-        for (const model of newModels) {
+        for (const model of filteredModels) {
             const equalMember = members.find(
                 (member) => member.firstname === model.firstname && member.lastname === model.lastname,
             );
 
             if (equalMember) {
                 model.id = equalMember.id;
+                existingModels.push(model);
+            } else {
+                newModels.push(model);
             }
         }
 
-        const modelsWithId = newModels.filter((model) => !!model.id);
-        const modelsWithoutId = newModels.filter((model) => !model.id);
-
-        await this.bulkSet([...oldModels, ...modelsWithId]);
-        await this.bulkAdd(modelsWithoutId);
+        await this.bulkSet(existingModels);
+        await this.bulkAdd(newModels);
 
         return {
-            created: modelsWithoutId.map((model) => model.getJson()),
-            updated: modelsWithId.map((model) => model.getJson()),
+            created: newModels.map((model) => model.getJson()),
+            updated: existingModels.map((model) => model.getJson()),
         };
     }
 }
