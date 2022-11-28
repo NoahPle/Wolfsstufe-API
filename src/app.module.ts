@@ -10,6 +10,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { JobsModule } from './modules/jobs/jobs.module';
 import { CoreModule } from './core/core.module';
 import { RulesModule } from './modules/rules/rules.module';
+import { EventsModule } from './modules/events/events.module';
 
 @Module({
     imports: [
@@ -23,6 +24,7 @@ import { RulesModule } from './modules/rules/rules.module';
         JobsModule,
         CoreModule,
         RulesModule,
+        EventsModule,
         BullModule.forRoot({
             redis: {
                 host: 'localhost',
