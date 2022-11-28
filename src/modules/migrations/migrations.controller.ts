@@ -1,4 +1,4 @@
-import { Controller, Post, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { MigrationsService } from './migrations.service';
 import { AdminGuard } from '../../guards/admin.guard';
 
@@ -7,9 +7,23 @@ import { AdminGuard } from '../../guards/admin.guard';
 export class MigrationsController {
     constructor(private migrationsService: MigrationsService) {}
 
-    //Moves all entries of the participants collection to the members collection and sets custom ids
+    @Get()
+    async getMigrations(): Promise<any> {
+        return this.migrationsService.migrationNames;
+    }
+
     @Post('members')
     async moveParticipantsToMembers() {
         await this.migrationsService.moveParticipantsToMembers();
+    }
+
+    @Post('users')
+    async moveLeadersToUsers() {
+        await this.migrationsService.moveLeadersToUsers();
+    }
+
+    @Post('events')
+    async moveDivisionEntriesToEvents() {
+        await this.migrationsService.moveDivisionEntriesToEvents();
     }
 }
