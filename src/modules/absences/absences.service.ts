@@ -12,7 +12,7 @@ import { CreateAbsenceEntryDto } from './dto/create-absence-entry.dto';
 
 @Injectable()
 export class AbsencesService extends ModelService {
-    async createAbsenceList(createAbsenceDto: CreateAbsenceDto) {
+    async createAbsenceList(createAbsenceDto: CreateAbsenceDto): Promise<any> {
         createAbsenceDto.date = moment(createAbsenceDto.date).startOf('day').toDate();
         let list = await AbsenceList.findByDate(moment(createAbsenceDto.date));
 
@@ -22,6 +22,7 @@ export class AbsencesService extends ModelService {
         }
 
         await this.setAbsencesWithEmails(list);
+        return list.getJson();
     }
 
     async createAllEntries(list) {

@@ -26,4 +26,14 @@ export class MigrationsController {
     async moveDivisionEntriesToEvents() {
         await this.migrationsService.moveDivisionEntriesToEvents();
     }
+
+    @Post('jobs')
+    async updateJobUserIds() {
+        await this.migrationsService.updateJobUserIds();
+    }
+
+    @Post('absences')
+    async moveListsToAbsences() {
+        await this.migrationsService.moveListsToAbsences();
+    }
 }
