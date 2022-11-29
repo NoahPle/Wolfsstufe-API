@@ -62,7 +62,7 @@ export class AbsencesService extends ModelService {
     }
 
     async deleteList(id: string) {
-        await this.delete(id, AbsenceList);
+        await this.recursiveDelete(id, AbsenceList);
     }
 
     async setAbsencesWithEmails(list: AbsenceList) {

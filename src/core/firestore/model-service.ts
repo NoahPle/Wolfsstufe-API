@@ -1,5 +1,7 @@
 import { FirestoreModel } from './firestore.model';
 import { FirestoreService } from './firestore.service';
+import { firestore } from 'firebase-admin';
+import DocumentReference = firestore.DocumentReference;
 
 export abstract class ModelService {
     protected async add(model: FirestoreModel): Promise<string> {
@@ -90,6 +92,36 @@ export abstract class ModelService {
         }
 
         await batch.commit();
+    }
+
+    protected async recursiveDelete(id: string, modelRef: typeof FirestoreModel) {
+        // @ts-ignore
+        const model = new modelRef();
+        const ref = model.getCollection().doc(id);
+        const subRefs = await this.recursiveDeleteByDocument(ref);
+        const batch = FirestoreService.getInstance().batch();
+        for (const subRef of subRefs) batch.delete(subRef);
+        batch.delete(ref);
+        await batch.commit();
+    }
+
+    private async recursiveDeleteByDocument(ref: DocumentReference): Promise<DocumentReference[]> {
+        const subCollections = await ref.listCollections();
+        const refs: DocumentReference[] = [ref];
+
+        if (subCollections.length) {
+            await Promise.all(
+                subCollections.map(async (collection) => {
+                    const snapshot = await collection.get();
+                    const data = await Promise.all(snapshot.docs.map((doc) => this.recursiveDeleteByDocument(doc.ref)));
+                    for (const subRefs of data) {
+                        refs.push(...subRefs);
+                    }
+                }),
+            );
+        }
+
+        return refs;
     }
 
     private generateModels(dtos = [], modelRef: typeof FirestoreModel, parentId?: string): FirestoreModel[] {
