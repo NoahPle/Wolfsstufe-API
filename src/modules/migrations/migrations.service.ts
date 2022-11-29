@@ -32,14 +32,12 @@ export class MigrationsService extends ModelService {
         },
         {
             title: 'Update User Ids from Jobs',
-            description:
-                'Moves all entries of the divisionEntries collection to the events collection. (Users should have midataIds)',
+            description: 'Replaces midataIds with user Ids. (Users should have midataIds)',
             endpoint: 'jobs',
         },
         {
             title: 'Lists to Absences',
-            description:
-                'Moves all entries of the divisionEntries collection to the events collection. (Users should have midataIds)',
+            description: 'Moves lists collection to absences collection. (Users should have midataIds)',
             endpoint: 'absences',
         },
     ];
